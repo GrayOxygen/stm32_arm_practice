@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "G:/apps/Keil_v5/ARM/ARMCC/**",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            // "compilerPath": "E:\\env\\mingw64\\bin\\gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            // "intelliSenseMode": "windows-gcc-x64",
+            "configurationProvider": "cl.eide"
+
+             // 1. 修正编译器路径：指向你真实的 Keil ARMCC 编译器
+            ,"compilerPath": "G:/apps/Keil_v5/ARM/ARMCC/bin/armcc.exe",
+            // 2. 修正 IntelliSense 模式：改为适配 ARM 架构
+            "intelliSenseMode": "gcc-arm",
+        }
+    ],
+    "version": 4
+}
