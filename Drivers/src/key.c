@@ -20,23 +20,24 @@ void key_init(void)
 	gpio_instruct.GPIO_Mode = GPIO_Mode_IPU; // 上拉输入，防止外部上拉电阻失效，多一个上拉的作用
 	GPIO_Init(GPIOA, &gpio_instruct);
 
-	// 中断配置==>NVIC配置+EXTI配置
-	// 初始化NVIC, GPIO没有中断，由外部中断处理
-	nvic_instruct.NVIC_IRQChannel = EXTI0_IRQn;			 // 选择哪一个信号触发中断
-	nvic_instruct.NVIC_IRQChannelCmd = ENABLE;			 // 开启对应通道
-	nvic_instruct.NVIC_IRQChannelPreemptionPriority = 2; // 抢占优先级，先设置一个值2
-	nvic_instruct.NVIC_IRQChannelSubPriority = 2;		 // 响应优先级，先设置一个值2
-	NVIC_Init(&nvic_instruct);
+	// 先注释，用定时器捕获输入的中断，避免冲突
+	// // 中断配置==>NVIC配置+EXTI配置
+	// // 初始化NVIC, GPIO没有中断，由外部中断处理
+	// nvic_instruct.NVIC_IRQChannel = EXTI0_IRQn;			 // 选择哪一个信号触发中断
+	// nvic_instruct.NVIC_IRQChannelCmd = ENABLE;			 // 开启对应通道
+	// nvic_instruct.NVIC_IRQChannelPreemptionPriority = 2; // 抢占优先级，先设置一个值2
+	// nvic_instruct.NVIC_IRQChannelSubPriority = 2;		 // 响应优先级，先设置一个值2
+	// NVIC_Init(&nvic_instruct);
 
-	// 初始化EXTI
-	exti_instruct.EXTI_Line = EXTI_Line0;			   // 初始化哪一个外部中断线
-	exti_instruct.EXTI_LineCmd = ENABLE;			   // 开启外部中断线
-	exti_instruct.EXTI_Mode = EXTI_Mode_Interrupt;	   // 外部中断线的模式(事件是用于触发事件，不是中断，这里我们需要中断，所以选择中断模式)
-	exti_instruct.EXTI_Trigger = EXTI_Trigger_Falling; // 触发边沿:下降沿触发，按键是低电平有效的，所以按下时会产生下降沿
-	EXTI_Init(&exti_instruct);
+	// // 初始化EXTI
+	// exti_instruct.EXTI_Line = EXTI_Line0;			   // 初始化哪一个外部中断线
+	// exti_instruct.EXTI_LineCmd = ENABLE;			   // 开启外部中断线
+	// exti_instruct.EXTI_Mode = EXTI_Mode_Interrupt;	   // 外部中断线的模式(事件是用于触发事件，不是中断，这里我们需要中断，所以选择中断模式)
+	// exti_instruct.EXTI_Trigger = EXTI_Trigger_Falling; // 触发边沿:下降沿触发，按键是低电平有效的，所以按下时会产生下降沿
+	// EXTI_Init(&exti_instruct);
 
-	// EXTI配置: GPIOA的第0号引脚对应EXTI的第0号线
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource0);
+	// // EXTI配置: GPIOA的第0号引脚对应EXTI的第0号线
+	// GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource0);
 }
 
 // 不准确的延时
@@ -93,7 +94,7 @@ void key_scan(void)
 			BEEP = 1;
 		}
 		else
-		{ // 短按发声
+		{// 段按切换状态
 			BEEP = 0;
 		}
 	}

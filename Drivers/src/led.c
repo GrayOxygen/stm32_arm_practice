@@ -1,6 +1,7 @@
 #include "led.h"
 #include "stm32f10x.h"
 #include "stm32f10x_tim.h"
+// 练习定时器
 
 void LED_Init(void)
 {
@@ -42,8 +43,7 @@ void LED_PWM_Init(void)
     // 配置 TIM3 基础参数
     TIM_TimeBaseStructure.TIM_Period = 255;                     // PWM 周期
     TIM_TimeBaseStructure.TIM_Prescaler = 72 - 1;               // 预分频，72MHz / 72 = 1MHz
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;                // 不分频,Clock Division一般用于滤波器（有抖动电压值时），PWM不需要，所以设为0
-    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;     // 不分频
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;     // 不分频,Clock Division一般用于滤波器（有抖动电压值时），PWM不需要，所以设为0
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; // 一般向上计数即可
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);             // 初始化时基单元
 
@@ -67,6 +67,7 @@ void LED_PWM_Init(void)
     TIM_CtrlPWMOutputs(TIM3, ENABLE); // 启动 PWM 输出
 }
 
+// 输出比较
 // 设置 RGB 颜色 (r, g, b: 0~255)
 void LED_Set_Color(uint8_t r, uint8_t g, uint8_t b)
 {
