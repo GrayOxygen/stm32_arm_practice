@@ -28,7 +28,7 @@ void key_init(void)
 	// nvic_instruct.NVIC_IRQChannelPreemptionPriority = 2; // 抢占优先级，先设置一个值2
 	// nvic_instruct.NVIC_IRQChannelSubPriority = 2;		 // 响应优先级，先设置一个值2
 	// NVIC_Init(&nvic_instruct);
-
+	
 	// // 初始化EXTI
 	// exti_instruct.EXTI_Line = EXTI_Line0;			   // 初始化哪一个外部中断线
 	// exti_instruct.EXTI_LineCmd = ENABLE;			   // 开启外部中断线

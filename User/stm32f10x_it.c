@@ -25,6 +25,7 @@
 #include "stm32f10x_it.h"
 #include "systick.h"
 #include "key.h"
+#include "my_usart.h"
 /** @addtogroup STM32F10x_StdPeriph_Examples
  * @{
  */
@@ -150,6 +151,38 @@ void SysTick_Handler(void)
     systick_stop();
   }
   key_flag++;
+}
+
+// 每收到数据，中断都会将数据放入ring_buffer，tail指针向后移动
+void USART1_IRQHandler(void)
+{
+  // 判断谁触发的中断
+  if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+  {
+    // 读取数据，放入环形缓冲区
+    uint8_t received_char = USART_ReceiveData(USART1);
+    UART_RX_BUF[usart1_rev_index] = received_char;
+    usart1_rev_index++;
+    if (usart1_rev_index >= UART_REC_LEN)
+    {
+      usart1_rev_index = 0; // 环形缓冲区满了就覆盖之前的数据
+    }
+
+    // 如果收到回车符，说明一句话接收完成了，设置完成标志
+    if (received_char == '\r')
+    {
+      UART_RX_STA |= 0x8000;  // 设置接收完成标志
+      UART_RX_STA &= ~0x4000; // 清除回车符标志（如果之前有的话）
+    }
+  }
+  else if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
+  {
+    // 收到空闲中断，说明一段话接收完成了（可能是回车符结尾，也可能不是），设置完成标志
+    UART_RX_STA |= 0x8000;                          // 设置接收完成标志
+    UART_RX_STA &= ~0x4000;                         // 清除回车符标志（如果之前有的话）
+    usart1_idle_flag = 1;                           // 设置为空闲标记
+    USART_ClearITPendingBit(USART1, USART_IT_IDLE); // 清除空闲中断标志位
+  }
 }
 
 /******************************************************************************/

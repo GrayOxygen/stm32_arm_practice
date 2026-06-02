@@ -199,9 +199,9 @@ void test_led_rainbow_breath()
     uint8_t base_g = *(hsv_rgb_lut + hue * 3 + 1);
     uint8_t base_b = *(hsv_rgb_lut + hue * 3 + 2);
 
-    // 2. 加入呼吸效果（正弦波平滑过渡）  
+    // 2. 加入呼吸效果（正弦波平滑过渡）
     float breath = (sinf(hue * 3.14159f / 180.0f) + 1.0f) / 2.0f;
-    
+
     // 3. 【核心修改】应用极端的权重和增益
     // 红色：基础值 * 5倍增益 * 呼吸因子
     uint16_t final_r = (uint16_t)(base_r * r_gain * breath);
@@ -300,23 +300,83 @@ void usart1_putstr(uint8_t *str, uint16_t len)
 void testUSART()
 {
 
+  // 你的外设初始化（确保里面调用了上面修改后的 usart1_init）
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-  // 外设初始化
   beep_init_std();
   remap_init();
   key_init();
   usart1_init();
+  char msg_buffer[100]; // 准备一个数组当“记事本”
+  int index = 0;        // 记录当前记到了第几个字
+
   while (1)
   {
-    uint16_t received = usart1_getchar(); // 接收数据
+    char rx_buffer;   // 准备一个能存50个字符的“记事本”
+    int rx_index = 0; // 记录当前存到了第几个字
 
-    char buffer[50];                                                  // 申请一块小内存当缓冲区
-    sprintf(buffer, "%s%c", "Wow. 收到了你的消息：", (char)received); // 格式化拼接字符串
-    usart1_putstr((uint8_t *)buffer, strlen(buffer));                 // 统一发送
+    while (1)
+    {
+      // 检查接收完成标志位（bit15）是否为 1
+      if (UART_RX_STA & 0x8000)
+      {
+        // 取出接收到的有效字符长度
+        uint16_t len = UART_RX_STA & 0x3FFF;
+        UART_RX_BUF[len] = '\0'; // 在字符串末尾加上结束符，变成标准的 C 语言字符串
 
-    // 3. 最后发一个回车换行，让串口助手的显示更整齐
-    usart1_putchar('\r'); // 回车
-    usart1_putchar('\n'); // 换行
+        // --- 开始聊天回复逻辑 --- 用回车表输入的句子到了结尾处
+        if (strcmp((char *)UART_RX_BUF, "你好") == 0)
+        {
+          const char *reply = "你好，我是STM32！很高兴和你聊天。\r\n";
+          for (int i = 0; reply[i] != '\0'; i++)
+          {
+            USART_SendData(USART1, reply[i]);
+            while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+              ;
+          }
+        }
+        else
+        {
+          const char *reply = "抱歉，我还在学习中，没听懂这句话。\r\n";
+          for (int i = 0; reply[i] != '\0'; i++)
+          {
+            USART_SendData(USART1, reply[i]);
+            while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+              ;
+          }
+        }
+
+        // 回复完毕后，必须清零状态位，准备接收下一句话！
+        UART_RX_STA = 0;
+      }
+    }
+  }
+}
+
+void testUSART_char()
+{
+  // 你的外设初始化（确保里面调用了上面修改后的 usart1_init）
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+  beep_init_std();
+  remap_init();
+  key_init();
+  usart1_init();
+
+  char msg_buffer[100]; // 命令数组
+
+  while (1)
+  {
+    printf("请输入指令(BEEP_ON/BEEP_OFF)：\r\n");
+    scanf("%s", msg_buffer); // 从串口接收字符串输入，存入 msg_buffer 数组中
+    // 通过BEEP_ON打开蜂鸣器，输入BEEP_OFF关闭蜂鸣器
+    uint16_t received_char = usart1_getchar();
+    if (strcmp(received_char, "BEEP_ON") == 0)
+    {
+      BEEP_ON();
+    }
+    else if (strcmp(received_char, "BEEP_OFF") == 0)
+    {
+      BEEP_OFF();
+    }
   }
 }
 
@@ -336,7 +396,7 @@ int main(void)
 
   // 点灯
   // test_led_by_bitband();
-  test_led_rainbow_breath();
+  // test_led_rainbow_breath();
 
   // 	// 系统时钟，PLL锁相环练习
   // 	RCC_DeInit();// 禁用系统时钟
@@ -357,7 +417,7 @@ int main(void)
   // longShortPressWithTimerInputCapture();
 
   // 测试串口通信
-  // testUSART();
+  testUSART();
 }
 
 #ifdef USE_FULL_ASSERT
